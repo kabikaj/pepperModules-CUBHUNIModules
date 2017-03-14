@@ -1,0 +1,6 @@
+*.jar
+.class
+logs/*
+target/maven-archiver/*
+target/classes/*
+/target/
