@@ -1,0 +1,32 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1489490216722
+Build-Jdk: 1.8.0_121
+Built-By: alicia
+Bundle-Description: Provides shared POM-data.
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: json
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-SymbolicName: de.uni_hamburg.pepper.cubhuni.json;singleton:=true
+Bundle-Vendor: Universitaet Hamburg
+Bundle-Version: 1.0.0.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: de.uni_hamburg.pepper.cubhuni.json;uses:="org.corpus_too
+ ls.pepper.common,org.corpus_tools.pepper.impl,org.corpus_tools.pepper.m
+ odules,org.corpus_tools.pepper.modules.exceptions,org.corpus_tools.salt
+ .common,org.corpus_tools.salt.graph,org.eclipse.emf.common.util";versio
+ n="1.0.0.SNAPSHOT"
+Import-Package: org.corpus_tools.pepper.common;version="[3.0,4)",org.cor
+ pus_tools.pepper.impl;version="[3.0,4)",org.corpus_tools.pepper.modules
+ ;version="[3.0,4)",org.corpus_tools.pepper.modules.exceptions;version="
+ [3.0,4)",org.corpus_tools.salt;version="[3.0,4)",org.corpus_tools.salt.
+ common;version="[3.0,4)",org.corpus_tools.salt.core;version="[3.0,4)",o
+ rg.corpus_tools.salt.graph;version="[3.0,4)",org.eclipse.emf.common.uti
+ l,org.json.simple;version="[1.1,2)",org.json.simple.parser;version="[1.
+ 1,2)",org.slf4j;version="[1.7,2)"
+META-INF: /home/alicia/COBHUNI/development/corpus/visualization/complete
+ _corpus/processing/pepperModules-CUBHUNIModules/META-INF
+OSGI-INF: OSGI-INF
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.7))"
+Service-Component: OSGI-INF/service-component/*.xml
+Tool: Bnd-2.3.0.201405100607

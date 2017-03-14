@@ -1,0 +1,71 @@
+{
+  "text": "Hola, esto es una prueba...",
+  "tokens": [
+    {
+      "tok": "hola",
+      "pos": "WORD",
+      "ini": 0,
+      "end": 4
+    },
+    {
+      "tok": ",",
+      "pos": "PUNC",
+      "ini": 4,
+      "end": 5
+    },
+    {
+      "tok": "esto",
+      "pos": "WORD",
+      "ini": 6,
+      "end": 10
+    },
+    {
+      "tok": "es",
+      "pos": "WORD",
+      "ini": 11,
+      "end": 13
+    },
+    {
+      "tok": "una",
+      "pos": "WORD",
+      "ini": 14,
+      "end": 17
+    },
+    {
+      "tok": "prueba",
+      "pos": "WORD",
+      "ini": 18,
+      "end": 24
+    },
+    {
+      "tok": "...",
+      "pos": "PUNC",
+      "ini": 24,
+      "end": 27
+    }
+  ],
+  "motives": [
+    {
+      "val": "foo",
+      "ini": 0,
+      "end": 1
+    },
+    {
+      "val": "bar",
+      "ini": 2,
+      "end": 6
+    }
+  ],
+  "persons": [
+    {
+      "val": "person 1",
+      "ini": 1,
+      "end": 2
+    },
+    {
+      "val": "person 2",
+      "ini": 4,
+      "end": 5
+    }
+  ]
+}
