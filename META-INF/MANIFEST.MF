@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1489490216722
+Bnd-LastModified: 1492603824694
 Build-Jdk: 1.8.0_121
 Built-By: alicia
 Bundle-Description: Provides shared POM-data.
@@ -16,14 +16,15 @@ Export-Package: de.uni_hamburg.pepper.cubhuni.json;uses:="org.corpus_too
  odules,org.corpus_tools.pepper.modules.exceptions,org.corpus_tools.salt
  .common,org.corpus_tools.salt.graph,org.eclipse.emf.common.util";versio
  n="1.0.0.SNAPSHOT"
-Import-Package: org.corpus_tools.pepper.common;version="[3.0,4)",org.cor
- pus_tools.pepper.impl;version="[3.0,4)",org.corpus_tools.pepper.modules
- ;version="[3.0,4)",org.corpus_tools.pepper.modules.exceptions;version="
- [3.0,4)",org.corpus_tools.salt;version="[3.0,4)",org.corpus_tools.salt.
- common;version="[3.0,4)",org.corpus_tools.salt.core;version="[3.0,4)",o
- rg.corpus_tools.salt.graph;version="[3.0,4)",org.eclipse.emf.common.uti
- l,org.json.simple;version="[1.1,2)",org.json.simple.parser;version="[1.
- 1,2)",org.slf4j;version="[1.7,2)"
+Import-Package: org.apache.commons.io;version="[1.4,2)",org.corpus_tools
+ .pepper.common;version="[3.0,4)",org.corpus_tools.pepper.impl;version="
+ [3.0,4)",org.corpus_tools.pepper.modules;version="[3.0,4)",org.corpus_t
+ ools.pepper.modules.exceptions;version="[3.0,4)",org.corpus_tools.salt;
+ version="[3.0,4)",org.corpus_tools.salt.common;version="[3.0,4)",org.co
+ rpus_tools.salt.core;version="[3.0,4)",org.corpus_tools.salt.graph;vers
+ ion="[3.0,4)",org.eclipse.emf.common.util,org.json.simple;version="[1.1
+ ,2)",org.json.simple.parser;version="[1.1,2)",org.slf4j;version="[1.7,2
+ )"
 META-INF: /home/alicia/COBHUNI/development/corpus/visualization/complete
  _corpus/processing/pepperModules-CUBHUNIModules/META-INF
 OSGI-INF: OSGI-INF

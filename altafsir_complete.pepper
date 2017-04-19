@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pepper-job id="testingExamplePepperJob" version="1.0">
+	<importer name="CubhuniJSONImporter" path="/home/alicia/COBHUNI/development/corpus/annotation/data/files/expanded/complete/altafsir">
+		<customization>
+			<property key="pepper.before.readMeta">meta</property>
+		</customization>
+	</importer>
+	<exporter name="ANNISExporter" path="/home/alicia/COBHUNI/development/corpus/visualization/complete_corpus/data/complete/altafsir">
+		<customization>
+			<property key="corpusName">TestingCorpusAltafsir</property>
+		</customization>
+	</exporter>
+</pepper-job>

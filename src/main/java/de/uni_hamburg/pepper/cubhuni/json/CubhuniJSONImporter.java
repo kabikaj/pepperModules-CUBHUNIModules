@@ -1,5 +1,6 @@
 package de.uni_hamburg.pepper.cubhuni.json;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +17,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 
+import org.apache.commons.io.FilenameUtils;
 import org.corpus_tools.pepper.common.DOCUMENT_STATUS;
 import org.corpus_tools.pepper.common.PepperConfiguration;
 import org.corpus_tools.pepper.impl.PepperImporterImpl;
@@ -38,6 +42,7 @@ import org.corpus_tools.salt.common.SSpan;
 import org.corpus_tools.salt.common.SStructure;
 import org.corpus_tools.salt.common.STextualDS;
 import org.corpus_tools.salt.common.SToken;
+import org.corpus_tools.salt.core.SMetaAnnotation;
 import org.corpus_tools.salt.graph.Identifier;
 import org.eclipse.emf.common.util.URI;
 import org.osgi.service.component.annotations.Component;
@@ -95,63 +100,24 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	
 	private static final Logger logger = LoggerFactory.getLogger(CubhuniJSONImporter.class);
 	
-	
-	private static String KEY_TEXT;
-	
-	private static final Map<String, String> ANNOTATIONS = new HashMap<String, String>();
-	
-	private static String KEY_TOKENS;
-
-	private static String KEY_TOK;
-	private static String KEY_VAL;
-		
-	private static String KEY_POS_IN;
-	private static String KEY_LEMMA_IN;
-	private static String KEY_ROOT_IN;
-	
-	private static String KEY_INI;
-	private static String KEY_END;
-	
-	private static String KEY_NORM;
-	private static String KEY_POS_OUT;
-	private static String KEY_LEMMA_OUT;
-	private static String KEY_ROOT_OUT;
+	private static final Properties props = new Properties();
+    private static final Map<String, String> ANNOTATIONS = new HashMap<String, String>();
 	
 	/**
-	 * Loads input and output target paths from config file
-	 * @throws URISyntaxException 
+	 * Load constants
+	 * @throws IOException 
 	 */
 	private static void loadConfig() throws IOException {
-		
-		/*FIXME shit relative path */
-		String configfilepath = "/home/alicia/COBHUNI/development/corpus/visualization/complete_corpus/processing/pepperModules-CUBHUNIModules/config.properties";
+		String configfilepath = "/home/alicia/COBHUNI/development/corpus/visualization/complete_corpus/processing/pepperModules-CUBHUNIModules/config.properties"; //FIXME
 		File configFile = new File(configfilepath);
 		FileReader configReader = new FileReader(configFile);
-		Properties props = new Properties();
 		props.load(configReader);
 		
-		KEY_TEXT = props.getProperty("key_text");
-		
-		ANNOTATIONS.put(props.getProperty("key_persons"), props.getProperty("key_person"));
-		ANNOTATIONS.put(props.getProperty("key_motives"), props.getProperty("key_motive"));
-		ANNOTATIONS.put(props.getProperty("key_metamotives"), props.getProperty("key_metamotive"));
-		
-		KEY_TOKENS = props.getProperty("key_tokens");
-		
-		KEY_TOK = props.getProperty("key_tok");
-		KEY_VAL = props.getProperty("key_val");
-		
-		KEY_POS_IN = props.getProperty("key_pos_in");
-		KEY_LEMMA_IN = props.getProperty("key_lemma_in");
-		KEY_ROOT_IN = props.getProperty("key_root_in");
-		
-		KEY_INI = props.getProperty("key_ini");
-		KEY_END = props.getProperty("key_end");
-		
-		KEY_NORM = props.getProperty("key_norm");
-		KEY_POS_OUT = props.getProperty("key_pos_out");
-		KEY_LEMMA_OUT = props.getProperty("key_lemma_out");
-		KEY_ROOT_OUT = props.getProperty("key_root_out");
+	    ANNOTATIONS.put(props.getProperty("persons"), props.getProperty("key_person"));
+	    ANNOTATIONS.put(props.getProperty("metamotives"), props.getProperty("key_metamotive"));
+	    ANNOTATIONS.put(props.getProperty("motives"), props.getProperty("key_motive"));
+	    ANNOTATIONS.put(props.getProperty("sections"), props.getProperty("key_section"));
+	    ANNOTATIONS.put(props.getProperty("pages"), props.getProperty("key_page"));
 	}
 	
 
@@ -180,13 +146,13 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 		setSupplierHomepage(URI.createURI(PepperConfiguration.HOMEPAGE));
 		
 		//TODO add a description of what your module is supposed to do
-		setDesc("This is a dummy importer and imports a static corpus containing one super-corpus, two sub-corpora and four documents. Each document contains a primary text, a tokenization, part-of-speech annotations,information structure annotations, syntactic annotations and anaphoric relations.");
+		setDesc("This is an importer for the data of the COBHUNI Project");
 		
 		// TODO change "sample" with format name and 1.0 with format version to support
 		addSupportedFormat("json", "1.0", null);
 		
 		// TODO change the endings in endings of files you want to import, see  also predefined endings beginning with 'ENDING_'
-		getDocumentEndings().add("json");
+		getDocumentEndings().add("json");		
 	}
 	
 
@@ -233,6 +199,7 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	 * @param corpusGraph
 	 *            the CorpusGraph object, which has to be filled.
 	 */
+	//FIXME lo unico que faltaria es crear la estructura correcta del corpus con subcorpus. pero los subcorpus pueden tener metadatos?? merece la pena??
 	@Override
 	public void importCorpusStructure(SCorpusGraph sCorpusGraph) throws PepperModuleException {
 		/**
@@ -241,6 +208,7 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 		 * delete the rest of the implementation, or delete the entire method to
 		 * trigger the default method.
 		 */
+		
 		super.importCorpusStructure(sCorpusGraph);
 
 		/*
@@ -333,9 +301,23 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 		 */
 		@Override
 		public DOCUMENT_STATUS mapSCorpus() {
-			// getScorpus() returns the current corpus object.
-			getCorpus().createMetaAnnotation(null, "date", "1989-12-17");
-
+			
+			/* add all corpus metadata */
+			String metapath = this.getResourceURI().path() + "/" +
+                              FilenameUtils.getBaseName(this.getResourceURI().path()) +
+                              CubhuniJSONImporter.props.getProperty("meta_file_suf");
+			
+			JSONParser parser = new JSONParser();
+			JSONObject jsonObj;
+			try {
+				jsonObj = (JSONObject) parser.parse(new FileReader(metapath));
+				
+				getCorpus().createMetaAnnotation(null, "ProjectURI", (String) jsonObj.get("ProjectURI"));
+				
+			} catch (IOException | ParseException e) {
+				e.printStackTrace();
+			}
+			
 			return (DOCUMENT_STATUS.COMPLETED);
 		}
 
@@ -360,49 +342,166 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 		@Override
 		public DOCUMENT_STATUS mapSDocument() {
 			
-			// the method getDocument() returns the current document for creating the document-structure
-			getDocument().setDocumentGraph(SaltFactory.createSDocumentGraph());
+			this.getDocument().setDocumentGraph(SaltFactory.createSDocumentGraph());
 			
 			// to get the exact resource, which be processed now, call getResources(), make sure, it was set in createMapper()
 			URI resource = getResourceURI();
 			
 			logger.debug("Importing the file {}.", resource);
 			
+			/* skip metadata files */
+			if (resource.path().endsWith(CubhuniJSONImporter.props.getProperty("meta_file_suf"))) {
+				return (DOCUMENT_STATUS.COMPLETED);
+			}
+			
 			JSONParser parser = new JSONParser();
 	        try {
 	            Object obj = parser.parse(new FileReader(resource.path()));
 	            JSONObject jsonObject = (JSONObject) obj;
+	            
+	            /*
+	             * add document metadata
+                 */
+	            
+	            JSONObject meta = (JSONObject) jsonObject.get(CubhuniJSONImporter.props.getProperty("meta"));
+	            
+	            
+	            String madhab_name = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("madhab_name"));
+	            if (madhab_name != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("madhab_name"), madhab_name);
+	            }
+	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("madhab_id"))) {
+	            	long madhab_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("madhab_id"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("madhab_id"), madhab_id);
+	            }
+	            
+	            String tafsir_name = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("tafsir_name"));
+	            if (tafsir_name != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tafsir_name"), tafsir_name);
+	            }
+	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("tafsir_id"))) {
+	            	long tafsir_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("tafsir_id"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tafsir_id"), tafsir_id);
+	            }
+	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("sura"))) {
+	            	long sura = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("sura"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("sura"), sura);
+	            }
+	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("aya_ini"))) {
+	            	long aya_ini = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("aya_ini"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("aya_ini"), aya_ini);
+	            }
+	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("aya_end"))) {
+	            	long aya_end = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("aya_end"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("aya_end"), aya_end);
+	            }
+	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("book_id"))) {
+	            	long book_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("book_id"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("book_id"), book_id);
+	            }
+	            
+	            String book_name = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("book_name"));
+	            if (book_name != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("book_name"), book_name);
+	            }
+	            	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("chapter_id"))) {
+	            	long chapter_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("chapter_id"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("chapter_id"), chapter_id);
+	            }
+	            
+	            String chapter_name = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("chapter_name"));
+	            if (chapter_name != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("chapter_name"), chapter_name);
+	            }
+	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("subchapter_id"))) {
+	            	long subchapter_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("subchapter_id"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("subchapter_id"), subchapter_id);
+	            }
+	            
+	            String subchapter_name = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("subchapter_name"));
+	            if (subchapter_name != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("subchapter_name"), subchapter_name);
+	            }
+	            
+	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("section_id"))) {
+	            	long section_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("section_id"));
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("section_id"), section_id);
+	            }
+	            
+	            String section_name = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("section_name"));
+	            if (section_name != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("section_name"), section_name);
+	            }
+	            
+	            String pages = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("pages"));
+	            if (pages != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("pages"), pages);
+	            }
+	            
+	            String title = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("title"));
+	            if (title != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("title"), title);
+	            }
+	            
+	            String author = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("author"));
+	            if (author != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("author"), author);
+	            }
+	            
+	            String date = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("date"));
+	            if (date != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("date"), date);
+	            }
+	            
+	            String url = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("url"));
+	            if (url != null) {
+	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("url"), url);
+	            }
 
-	            String text = (String) jsonObject.get(KEY_TEXT);
+	            /*
+	             * finish adding metadata
+                 */
+	            
+	            
+	            String text = (String) jsonObject.get(CubhuniJSONImporter.props.getProperty("text"));
 	            STextualDS primaryText = getDocument().getDocumentGraph().createTextualDS(text);
-	            System.out.println("\033[0;31m::DEBUG::" + " text=" + text + "\033[0m"); //DEBUG
+	            //System.err.println("\033[0;31m::DEBUG::" + " text=" + text + "\033[0m"); //DEBUG
 
-	            JSONArray tokens = (JSONArray) jsonObject.get(KEY_TOKENS);
+	            JSONArray tokens = (JSONArray) jsonObject.get((String) CubhuniJSONImporter.props.getProperty("tokens"));
+	            
 	            Iterator<JSONObject> iterTokens = tokens.iterator();
 	            List<SToken> alltokens = new ArrayList<SToken>();
 	            while(iterTokens.hasNext())
 	            {
 	            	JSONObject tokenObj = iterTokens.next();
-	            	String tok = (String) tokenObj.get(KEY_TOK);
-	            	String pos = (String) tokenObj.get(KEY_POS_IN);
-	            	// String lemma = (String) tokenObj.get(KEY_LEMMA_IN);  //FIXME
-	            	// String root = (String) tokenObj.get(KEY_ROOT_IN);  //FIXME
+	            	String tok = (String) tokenObj.get((String) CubhuniJSONImporter.props.getProperty("tok_tok"));
+	            	String pos = (String) tokenObj.get((String) CubhuniJSONImporter.props.getProperty("tok_pos"));
+	            	// String lemma = (String) tokenObj.get((String) CubhuniJSONImporter.props.getProperty("tok_lemma"));  //FIXME
+	            	// String root = (String) tokenObj.get((String) CubhuniJSONImporter.props.getProperty("tok_root"));  //FIXME
 	            	
-	            	Integer ini = new Integer(((Long)tokenObj.get(KEY_INI)).intValue());
-	            	Integer end = new Integer(((Long)tokenObj.get(KEY_END)).intValue());
+	            	Integer ini = new Integer(((Long)tokenObj.get((String) CubhuniJSONImporter.props.getProperty("tok_ini"))).intValue());
+	            	Integer end = new Integer(((Long)tokenObj.get((String) CubhuniJSONImporter.props.getProperty("tok_end"))).intValue());
 	            	
 	            	SToken token = getDocument().getDocumentGraph().createToken(primaryText, ini, end);
-	            	token.createAnnotation(null, KEY_NORM, tok);
-	            	token.createAnnotation(null, KEY_POS_OUT, pos);
-	            	//createdToken.createAnnotation(null, KEY_LEMMA_OUT, lemma);  //FIXME
-	            	//createdToken.createAnnotation(null, KEY_ROOT_OUT, root);  //FIXME
+	            	token.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_tok_out"), tok);
+	            	token.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_pos"), pos);
+	            	//createdToken.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_lemma"), lemma);  //FIXME
+	            	//createdToken.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_root"), root);  //FIXME
 	            	
 	            	alltokens.add(token);
 	            	
-	            	System.err.println("\033[0;31m::DEBUG tokens:: tok=" + tok + " pos=" + pos + " ini=" + ini + " end=" + end + "\033[0m"); //DEBUG
+	            	//System.err.println("\033[0;31m::DEBUG tokens:: tok=" + tok + " pos=" + pos + " ini=" + ini + " end=" + end + "\033[0m"); //DEBUG
 	            	addProgress(0.16);
 	            }
-
+	            
 	            Iterator it = ANNOTATIONS.entrySet().iterator();
 	            while (it.hasNext())
 	            {	
@@ -418,22 +517,34 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	            	while(iterAnnotations.hasNext())
 	            	{
 	            		JSONObject annObj = iterAnnotations.next();
-	            		String val = (String) annObj.get(KEY_VAL);
-	            		Integer ini = new Integer(((Long)annObj.get(KEY_INI)).intValue());
-	            		Integer end = new Integer(((Long)annObj.get(KEY_END)).intValue());
+	            		String val = (String) annObj.get((String) CubhuniJSONImporter.props.getProperty("annotation_val"));
+	            		Integer ini = new Integer(((Long)annObj.get((String) CubhuniJSONImporter.props.getProperty("annotation_ini"))).intValue());
+	            		Integer end = new Integer(((Long)annObj.get((String) CubhuniJSONImporter.props.getProperty("annotation_end"))).intValue());
 
 	            		// create new annotation span instance
 	            		List<SToken> annotation_set = new ArrayList<SToken>();
-	            		for(int i=ini; i<=end; i++){
-	            			annotation_set.add(alltokens.get(i));	
+	            		
+	            		for(int i=ini; i<=end; i++)
+	            		{
+	            			try
+	            			{
+	            				annotation_set.add(alltokens.get(i));
+	            			}
+	            			catch (IndexOutOfBoundsException e)  //DEBUG
+	            			{
+	            				System.out.println(e);  //DEBUG
+	            				System.out.println("tokens size = " + alltokens.size()); //DEBUG
+	            				System.out.println("group=" + group + "  val=" + val + "  ini=" + ini + "  end=" + end);  //DEBUG
+	            				System.exit(1); //DEBUG
+	            			}
 	            		}
+	            		
 	            		SSpan annotation = getDocument().getDocumentGraph().createSpan(annotation_set);
 	            		annotation.createAnnotation(null, tag, val);
 	    			
-	            		System.err.println("\033[0;31m::DEBUG "+ tag +":: val=" + val + " ini=" + ini + " end=" + end + "\033[0m"); //DEBUG
+	            		//System.err.println("\033[0;31m::DEBUG "+ tag +":: val=" + val + " ini=" + ini + " end=" + end + "\033[0m"); //DEBUG
 	            		addProgress(0.16);
 	            	} 
-	                //it.remove(); //FIXME borrar?
 	            }
 
 	        } catch (FileNotFoundException e) {
@@ -443,141 +554,6 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	        } catch (ParseException e) {
 	            e.printStackTrace();
 	        }
-
-			/**
-			 * STEP 4: we create some information structure annotations via
-			 * spans, spans can be used, to group tokens to a set, which can be
-			 * annotated
-			 * <table border="1">
-			 * <tr>
-			 * <td>contrast-focus</td>
-			 * <td colspan="9">topic</td>
-			 * </tr>
-			 * <tr>
-			 * <td>Is</td>
-			 * <td>this</td>
-			 * <td>example</td>
-			 * <td>more</td>
-			 * <td>complicated</td>
-			 * <td>than</td>
-			 * <td>it</td>
-			 * <td>appears</td>
-			 * <td>to</td>
-			 * <td>be</td>
-			 * </tr>
-			 * </table>
-			 */
-	        
-			//SSpan contrastFocus = getDocument().getDocumentGraph().createSpan(tok_is);
-			//contrastFocus.createAnnotation(null, "Inf-Struct", "contrast-focus");
-			
-			/*
-			List<SToken> topic_set = new ArrayList<SToken>();
-			topic_set.add(tok_thi);
-			topic_set.add(tok_exa);
-			topic_set.add(tok_mor);
-			topic_set.add(tok_com);
-			topic_set.add(tok_tha);
-			topic_set.add(tok_it);
-			topic_set.add(tok_app);
-			topic_set.add(tok_to);
-			topic_set.add(tok_be);
-			
-			SSpan topic = getDocument().getDocumentGraph().createSpan(topic_set);
-			topic.createAnnotation(null, "Inf-Struct", "topic");
-
-			// we add a progress to notify the user about the process status
-			// (this is very helpful, especially for longer taking processes)
-			addProgress(0.16);
-			*/
-
-			/**
-			 * STEP 5: we create anaphoric relation between 'it' and 'this
-			 * example', therefore 'this example' must be added to a span. This
-			 * makes use of the graph based model of Salt. First we create a
-			 * relation, than we set its source and its target node and last we
-			 * add the relation to the graph.
-			 */
-			/*
-			List<SToken> target_set = new ArrayList<SToken>();
-			target_set.add(tok_thi);
-			target_set.add(tok_exa);
-			SSpan target = getDocument().getDocumentGraph().createSpan(target_set);
-			SPointingRelation anaphoricRel = SaltFactory.createSPointingRelation();
-			anaphoricRel.setSource(tok_is);
-			anaphoricRel.setTarget(target);
-			anaphoricRel.setType("anaphoric");
-			// we add the created relation to the graph
-			getDocument().getDocumentGraph().addRelation(anaphoricRel);
-
-			// we add a progress to notify the user about the process status
-			// (this is very helpful, especially for longer taking processes)
-			addProgress(0.16);
-			*/
-
-			/**
-			 * STEP 6: We create a syntax tree following the Tiger scheme
-			 */
-			/*
-			SStructure root = SaltFactory.createSStructure();
-			SStructure sq = SaltFactory.createSStructure();
-			SStructure np1 = SaltFactory.createSStructure();
-			SStructure adjp1 = SaltFactory.createSStructure();
-			SStructure adjp2 = SaltFactory.createSStructure();
-			SStructure sbar = SaltFactory.createSStructure();
-			SStructure s1 = SaltFactory.createSStructure();
-			SStructure np2 = SaltFactory.createSStructure();
-			SStructure vp1 = SaltFactory.createSStructure();
-			SStructure s2 = SaltFactory.createSStructure();
-			SStructure vp2 = SaltFactory.createSStructure();
-			SStructure vp3 = SaltFactory.createSStructure();
-
-			// we add annotations to each SStructure node
-			root.createAnnotation(null, "cat", "ROOT");
-			sq.createAnnotation(null, "cat", "SQ");
-			np1.createAnnotation(null, "cat", "NP");
-			adjp1.createAnnotation(null, "cat", "ADJP");
-			adjp2.createAnnotation(null, "cat", "ADJP");
-			sbar.createAnnotation(null, "cat", "SBAR");
-			s1.createAnnotation(null, "cat", "S");
-			np2.createAnnotation(null, "cat", "NP");
-			vp1.createAnnotation(null, "cat", "VP");
-			s2.createAnnotation(null, "cat", "S");
-			vp2.createAnnotation(null, "cat", "VP");
-			vp3.createAnnotation(null, "cat", "VP");
-
-			// we add the root node first
-			getDocument().getDocumentGraph().addNode(root);
-			SALT_TYPE domRel = SALT_TYPE.SDOMINANCE_RELATION;
-			// than we add the rest and connect them to each other
-			getDocument().getDocumentGraph().addNode(root, sq, domRel);
-			getDocument().getDocumentGraph().addNode(sq, tok_is, domRel); // "Is"
-			getDocument().getDocumentGraph().addNode(sq, np1, domRel);
-			getDocument().getDocumentGraph().addNode(np1, tok_thi, domRel); // "this"
-			getDocument().getDocumentGraph().addNode(np1, tok_exa, domRel); // "example"
-			getDocument().getDocumentGraph().addNode(sq, adjp1, domRel);
-			getDocument().getDocumentGraph().addNode(adjp1, adjp2, domRel);
-			getDocument().getDocumentGraph().addNode(adjp2, tok_mor, domRel); // "more"
-			getDocument().getDocumentGraph().addNode(adjp2, tok_com, domRel); // "complicated"
-			getDocument().getDocumentGraph().addNode(adjp1, sbar, domRel);
-			getDocument().getDocumentGraph().addNode(sbar, tok_tha, domRel); // "than"
-			getDocument().getDocumentGraph().addNode(sbar, s1, domRel);
-			getDocument().getDocumentGraph().addNode(s1, np2, domRel);
-			getDocument().getDocumentGraph().addNode(np2, tok_it, domRel); // "it"
-			getDocument().getDocumentGraph().addNode(s1, vp1, domRel);
-			getDocument().getDocumentGraph().addNode(vp1, tok_app, domRel); // "appears"
-			getDocument().getDocumentGraph().addNode(vp1, s2, domRel);
-			getDocument().getDocumentGraph().addNode(s2, vp2, domRel);
-			getDocument().getDocumentGraph().addNode(vp2, tok_to, domRel); // "to"
-			getDocument().getDocumentGraph().addNode(vp2, vp3, domRel);
-			getDocument().getDocumentGraph().addNode(vp3, tok_be, domRel); // "be"
-			getDocument().getDocumentGraph().addNode(root, tok_PUN, domRel); // "?"
-
-			// we set progress to 'done' to notify the user about the process
-			// status (this is very helpful, especially for longer taking
-			// processes)
-			setProgress(1.0);
-			*/
 
 			return (DOCUMENT_STATUS.COMPLETED);
 			
