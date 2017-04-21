@@ -4,17 +4,17 @@
 #
 # Execute conversion from json into annis with pepper using the CubhuniJSONImporter.
 #
-# +-----------------------------------------------------------------------------------+
-# |                                        WARNING                                    |
-# | Pepper cannot be executed by a script from inside the UHH remote server. This is  |
-# | a problem of rights that cannot be changed. Thus, a copy of pepper must be copied |
-# | into a local directory and the variable PEPPER_DIR must be updated accordingly.   |
-# +-----------------------------------------------------------------------------------+
+# +--------------------------------------------------------------------------------------------+
+# |                                        WARNING                                             |
+# | Pepper cannot be executed by a script from inside the UHH remote server. This is a problem |
+# | of rights that cannot be changed. Thus, an instance of pepper must be copied into a local  |
+# | directory and the variable PEPPER_DIR must contain the path of the pepper instance.        |
+# +--------------------------------------------------------------------------------------------+
 #
 # usage:
 #   $ bash convert_worflows.sh -c -oad
 #
-#######################################################################################
+################################################################################################
 
 #
 # constants
@@ -44,14 +44,19 @@ CLEAN_FLAG=0
 
 CURRENT_PATH=$(echo $PWD)
 
-PEPPER_DIR=/home/alicia/Desktop/pepper_instances/pepper_2017.03.01
+############################### IMPORTANT ###########################################
+# Ihis path must point to the pepper instance to be used. In the pepper instance,   #
+# the variable *pepper.dropin.paths* inside the *conf/pepper.properties* must point #
+# to the *CubhuniJSONImporter*, which is included in the same path as this script   #
+#####################################################################################
+PEPPER_DIR=/home/alicia/Desktop/pepper_instances/pepper_2017.03.01  
 
 OCRED_WORKFLOW="$CURRENT_PATH"/ocred_annotated.pepper
 ALTAFSIR_WORKFLOW="$CURRENT_PATH"/altafsir_complete.pepper
 HADITH_WORKFLOW="$CURRENT_PATH"/hadith_complete.pepper
 
 DATA_INPATH=/home/alicia/COBHUNI/development/corpus/annotation/data/files/expanded
-DATA_OUTPATH=/home/alicia/COBHUNI/development/corpus/visualization/complete_corpus/data
+DATA_OUTPATH=/home/alicia/COBHUNI/development/corpus/visualization/data
 
 OCRED_PATH=annotated/ocred_texts
 ALTAFSIR_PATH=complete/altafsir

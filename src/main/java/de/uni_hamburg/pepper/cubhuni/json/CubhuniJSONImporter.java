@@ -108,7 +108,7 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	 * @throws IOException 
 	 */
 	private static void loadConfig() throws IOException {
-		String configfilepath = "/home/alicia/COBHUNI/development/corpus/visualization/complete_corpus/processing/pepperModules-CUBHUNIModules/config.properties"; //FIXME
+		String configfilepath = "/home/alicia/COBHUNI/development/corpus/visualization/processing/pepperModules-CUBHUNIModules/config.properties"; //FIXME
 		File configFile = new File(configfilepath);
 		FileReader configReader = new FileReader(configFile);
 		props.load(configReader);
