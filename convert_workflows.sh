@@ -11,6 +11,14 @@
 # | directory and the variable PEPPER_DIR must contain the path of the pepper instance.        |
 # +--------------------------------------------------------------------------------------------+
 #
+# NOTES
+# -----
+#  * The var PEPPER_DIR must point to the pepper instance to be used.
+#  * In the pepper instance, the variable pepper.dropin.paths inside the *conf/pepper.properties*
+#    must point to the CubhuniJSONImporter, which is included in the same path as this script.
+#  * Inside the directory plugins of the pepper instance, it must be included the json library
+#    used by the CubhuniJSONImporter class, ./json-simple-1.1.1.jar.
+#
 # usage:
 #   $ bash convert_worflows.sh -c -oad
 #
@@ -33,6 +41,7 @@ HELP='\n'\
 '\t-o    create annis db for ocred texts\n'\
 '\t-a    create annis db for altafsir texts\n'\
 '\t-d    create annis db for hadith al-islam texts\n'\
+'\t-t    create annis db for test texts\n'\
 '\t-c    clean resources'\
 '\n'
 
@@ -40,6 +49,7 @@ HELP='\n'\
 OCRED_FLAG=0
 ALTAFSIR_FLAG=0
 HADITH_FLAG=0
+TEST_FLAG=0
 CLEAN_FLAG=0
 
 CURRENT_PATH=$(echo $PWD)
@@ -54,17 +64,20 @@ PEPPER_DIR=/home/alicia/Desktop/pepper_instances/pepper_2017.03.01
 OCRED_WORKFLOW="$CURRENT_PATH"/ocred_annotated.pepper
 ALTAFSIR_WORKFLOW="$CURRENT_PATH"/altafsir_complete.pepper
 HADITH_WORKFLOW="$CURRENT_PATH"/hadith_complete.pepper
+TEST_WORKFLOW="$CURRENT_PATH"/"test.pepper"
 
 DATA_INPATH=/home/alicia/COBHUNI/development/corpus/annotation/data/files/expanded
 DATA_OUTPATH=/home/alicia/COBHUNI/development/corpus/visualization/data
 
-OCRED_PATH=annotated/ocred_texts
-ALTAFSIR_PATH=complete/altafsir
-HADITH_PATH=complete/hadith_alislam
+OCRED_PATH="annotated/ocred_texts"
+ALTAFSIR_PATH="complete/altafsir"
+HADITH_PATH="complete/hadith_alislam"
+TEST_PATH="testing_zone/test"
 
 OCRED_META=ocred_texts_meta.json
 ALTAFSIR_META=altafsir_meta.json
 HADITH_META=hadith_alislam_meta.json
+TEST_META=test_meta.json
 
 ################################
 #
@@ -73,13 +86,14 @@ HADITH_META=hadith_alislam_meta.json
 
 parse_arguments()
 {
-  while getopts ':hoadc' opt
+  while getopts ':hoadtc' opt
   do
     case "$opt" in
       'h') echo -e "$HELP" ; exit 0 ;;
       'o') OCRED_FLAG=1 ;;
       'a') ALTAFSIR_FLAG=1 ;;
       'd') HADITH_FLAG=1 ;;
+      't') TEST_FLAG=1 ;;
       'c') CLEAN_FLAG=1 ;;
       '?') echo -e "\n${RED_COLOR} option -$OPTARG not valid${END_COLOR}\n$HELP" >&2 ; exit 1 ;;
     esac
@@ -103,9 +117,9 @@ fi
 
 cd "$PEPPER_DIR"
 
-echo -e                                               1>&2
-echo -e " +----------------------------------------+" 1>&2
-echo -e " |    Starting xml to Annis convertion    |" 1>&2
+echo -e                                                 1>&2
+echo -e " +----------------------------------------+"   1>&2
+echo -e " |    Starting xml to Annis convertion    |"   1>&2
 echo -e " +----------------------------------------+\n" 1>&2
 
 if [ $OCRED_FLAG -eq 1 ]; then
@@ -123,7 +137,7 @@ if [ $ALTAFSIR_FLAG -eq 1 ]; then
 
     echo -e "Cleaning altafsir outpath...\n" 1>&2
     /bin/rm "$DATA_OUTPATH"/"$ALTAFSIR_PATH"/*
-    cp "$CURRENT_PATH"/"$ALTAFSIR_META" "$DATA_INPATH"/"$ALTAFSIR_PATH"/"$ALTAFSIR_META"
+    cp "$CURRENT_PATH"/"$ALTAFSIR_META" "$DATA_INPATH"/"$ALTAFSIR_PATH"
 
     echo -e "Converting altafsir to annis database...\n\n" 1>&2
     bash pepperStart.sh "$ALTAFSIR_WORKFLOW"
@@ -134,9 +148,20 @@ if [ $HADITH_FLAG -eq 1 ]; then
 
     echo -e "Cleaning hadith al-islam outpath...\n" 1>&2
     /bin/rm "$DATA_OUTPATH"/"$HADITH_PATH"/*
-    cp "$CURRENT_PATH"/"$HADITH_META" "$DATA_INPATH"/"$HADITH_PATH"/"$HADITH_META"
+    cp "$CURRENT_PATH"/"$HADITH_META" "$DATA_INPATH"/"$HADITH_PATH"
 
     echo -e "Converting hadith al-islam to annis database...\n\n" 1>&2
     bash pepperStart.sh "$HADITH_WORKFLOW"
+    
+fi
+
+if [ $TEST_FLAG -eq 1 ]; then
+
+    echo -e "Cleaning test outpath...\n" 1>&2
+    /bin/rm "$DATA_OUTPATH"/"$TEST_PATH"/*
+    cp "$CURRENT_PATH"/"$TEST_META" "$DATA_INPATH"/"$TEST_PATH"
+
+    echo -e "Converting test texts to annis database...\n\n" 1>&2
+    bash pepperStart.sh "$TEST_WORKFLOW"
     
 fi

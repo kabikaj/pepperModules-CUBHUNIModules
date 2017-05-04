@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1492778948753
+Bnd-LastModified: 1493904586842
 Build-Jdk: 1.8.0_121
 Built-By: alicia
 Bundle-Description: Provides shared POM-data.

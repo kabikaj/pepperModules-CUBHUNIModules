@@ -311,7 +311,6 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 			JSONObject jsonObj;
 			try {
 				jsonObj = (JSONObject) parser.parse(new FileReader(metapath));
-				
 				getCorpus().createMetaAnnotation(null, "ProjectURI", (String) jsonObj.get("ProjectURI"));
 				
 			} catch (IOException | ParseException e) {
@@ -352,6 +351,18 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 			/* skip metadata files */
 			if (resource.path().endsWith(CubhuniJSONImporter.props.getProperty("meta_file_suf"))) {
 				return (DOCUMENT_STATUS.COMPLETED);
+			}
+			
+			System.err.println("\033[0;31m::DEBUG::" + " FILE=" + resource + "\033[0m"); //DEBUG
+			
+			if (resource.trimFileExtension().toString().endsWith(CubhuniJSONImporter.props.getProperty("original"))) {
+				this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("source_type_key"),
+						                                      (String) CubhuniJSONImporter.props.getProperty("original"));
+			}
+			
+			if (resource.trimFileExtension().toString().endsWith(CubhuniJSONImporter.props.getProperty("commentary"))) {
+				this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("source_type_key"),
+                                                              (String) CubhuniJSONImporter.props.getProperty("commentary"));
 			}
 			
 			JSONParser parser = new JSONParser();
@@ -422,8 +433,10 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	            }
 	            
 	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("subchapter_id"))) {
-	            	long subchapter_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("subchapter_id"));
-	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("subchapter_id"), subchapter_id);
+	            	if (meta.get((String) CubhuniJSONImporter.props.getProperty("subchapter_id")) != null) {
+	            		long subchapter_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("subchapter_id"));
+	            		this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("subchapter_id"), subchapter_id);
+	            	}
 	            }
 	            
 	            String subchapter_name = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("subchapter_name"));
@@ -432,8 +445,10 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	            }
 	            
 	            if (meta.containsKey((String) CubhuniJSONImporter.props.getProperty("section_id"))) {
-	            	long section_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("section_id"));
-	            	this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("section_id"), section_id);
+	            	if (meta.get((String) CubhuniJSONImporter.props.getProperty("section_id")) != null ) {
+	            		long section_id = (long) meta.get((String) CubhuniJSONImporter.props.getProperty("section_id"));
+	            		this.getDocument().createMetaAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("section_id"), section_id);
+	            	}
 	            }
 	            
 	            String section_name = (String) meta.get((String) CubhuniJSONImporter.props.getProperty("section_name"));
@@ -470,7 +485,6 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	             * finish adding metadata
                  */
 	            
-	            
 	            String text = (String) jsonObject.get(CubhuniJSONImporter.props.getProperty("text"));
 	            STextualDS primaryText = getDocument().getDocumentGraph().createTextualDS(text);
 	            //System.err.println("\033[0;31m::DEBUG::" + " text=" + text + "\033[0m"); //DEBUG
@@ -491,8 +505,8 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	            	Integer end = new Integer(((Long)tokenObj.get((String) CubhuniJSONImporter.props.getProperty("tok_end"))).intValue());
 	            	
 	            	SToken token = getDocument().getDocumentGraph().createToken(primaryText, ini, end);
-	            	token.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_tok_out"), tok);
-	            	token.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_pos"), pos);
+	            	token.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_norm"), tok);
+	            	//token.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_pos"), pos);  //FIXME
 	            	//createdToken.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_lemma"), lemma);  //FIXME
 	            	//createdToken.createAnnotation(null, (String) CubhuniJSONImporter.props.getProperty("tok_root"), root);  //FIXME
 	            	
@@ -532,9 +546,9 @@ public class CubhuniJSONImporter extends PepperImporterImpl implements PepperImp
 	            			}
 	            			catch (IndexOutOfBoundsException e)  //DEBUG
 	            			{
-	            				System.out.println(e);  //DEBUG
-	            				System.out.println("tokens size = " + alltokens.size()); //DEBUG
-	            				System.out.println("group=" + group + "  val=" + val + "  ini=" + ini + "  end=" + end);  //DEBUG
+	            				System.out.println("\033[0;31m::TRACE ERROR" + e + "\033[0m");  //DEBUG
+	            				System.out.println("\033[0;31m::DEBUG tokens:: tokens size=" + alltokens.size() + "\033[0m"); //DEBUG
+	            				System.out.println("\033[0;31m::DEBUG group=" + group + "  val=" + val + "  ini=" + ini + "  end=" + end + "\033[0m");  //DEBUG
 	            				System.exit(1); //DEBUG
 	            			}
 	            		}

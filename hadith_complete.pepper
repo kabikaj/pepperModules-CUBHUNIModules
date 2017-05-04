@@ -1,13 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<pepper-job id="testingExamplePepperJob" version="1.0">
+<pepper-job id="HadithAlIslamPepperJob" version="1.0">
 	<importer name="CubhuniJSONImporter" path="/home/alicia/COBHUNI/development/corpus/annotation/data/files/expanded/complete/hadith_alislam">
-		<customization>
-			<property key="pepper.before.readMeta">meta</property>
-		</customization>
 	</importer>
 	<exporter name="ANNISExporter" path="/home/alicia/COBHUNI/development/corpus/visualization/data/complete/hadith_alislam">
 		<customization>
-			<property key="corpusName">TestingCorpusHadith</property>
+			<property key="corpusName">CorpusHadithAlIslam</property>
 		</customization>
 	</exporter>
 </pepper-job>

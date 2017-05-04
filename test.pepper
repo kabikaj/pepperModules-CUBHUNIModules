@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pepper-job id="testingExamplePepperJob" version="1.0">
+    <importer name="CubhuniJSONImporter" path="/home/alicia/COBHUNI/development/corpus/annotation/data/files/expanded/testing_zone/test">
+	</importer>
+	<exporter name="ANNISExporter" path="/home/alicia/COBHUNI/development/corpus/visualization/data/test">
+		<customization>
+			<property key="corpusName">TestingCorpusTest</property>
+		</customization>
+	</exporter>
+</pepper-job>
